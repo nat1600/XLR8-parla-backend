@@ -39,9 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # APPS FROM OUR PROJECT 
     'phrases',
-    'translate'
     'users', 
     'flashcards',
+    'gamification',
 ]
 
 MIDDLEWARE = [

@@ -22,7 +22,7 @@ urlpatterns = [
     ## URLS from the apis we have already created (phrases, translate, users, flashcards)
 
     path('api/phrases/', include('phrases.urls')),
-    path('api/translate/', include('translate.urls')),
+    path('api/gamification/', include('gamification.urls')),
     path('api/flashcards/', include('flashcards.urls')),
     path('api/users/', include('users.urls')),
 ]

@@ -15,14 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     ## URLS from the apis we have already created (phrases, translate, users, flashcards)
-
-    path('api/phrases/', include('phrases.urls')),
-    path('api/gamification/', include('gamification.urls')),
-    path('api/flashcards/', include('flashcards.urls')),
-    path('api/users/', include('users.urls')),
+## TODO: Fix error here, read django documentation
+    # path('api/phrases/', include('phrases.urls')),
+    # path('api/gamification/', include('gamification.urls')),
+    # path('api/flashcards/', include('flashcards.urls')),
+    # path('api/users/', include('users.urls')),
 ]

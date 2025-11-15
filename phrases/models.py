@@ -25,7 +25,7 @@ class Category (models.Model):
     ]
 
     name = models.CharField(max_length=100)
-    type = models.CharField(max_lenght = 20, choices = CATEGORY_TYPES)
+    type = models.CharField(max_length=20, choices=CATEGORY_TYPES)
     description = models.TextField (null=True, blank =True)
 
     class Meta:
@@ -35,12 +35,12 @@ class Category (models.Model):
         return self.name
 
 
-class Pharse(models.Model):
+class Phrase(models.Model):
     SOURCE_TYPES =[
         ('youtube','Youtube'),
         ('netflix', 'Netflix'),
-        ('web', 'Wen'),
-        ('pdf', 'PDF'), # i dont know if we are going to left this, so we have to review this
+        ('web', 'Web'),
+        ('pdf', 'PDF'), # TODO: Confirm if we keep this source type
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='phrases')

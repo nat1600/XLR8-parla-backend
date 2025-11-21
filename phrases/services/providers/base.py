@@ -7,24 +7,20 @@ class TranslationProvider(ABC):
     """
 
     @abstractmethod
-    def translate(self, text:str, source_lang:str, target_lang:str)-> dict:
+    def translate(self, text: str, source_lang: str, target_lang: str) -> dict:
         """
-        translate text
-
-        this is going to return:
-        dict:{
-        'translation': str
-        'pronunciation'str, it maybe optional
+        Must return a dict:
+        {
+            'translation': str,
+            'pronunciation': str | None
         }
         """
-
-
         pass
 
 
     @abstractmethod
     
-    def is_avaible(self) -> bool:
+    def is_available(self) -> bool:
         """
         Is avaible the provider
         """

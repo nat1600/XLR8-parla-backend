@@ -23,7 +23,7 @@ class TranslationService:
             try:
                 #  check if provider is available
                 if not provider.is_available():
-                    errors.append(f"{provider.__class__.__name__}: No disponible")
+                    errors.append(f"{provider.__class__.__name__}: Not avaiblable")
                     continue
 
                 # try translation

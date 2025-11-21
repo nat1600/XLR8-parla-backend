@@ -97,7 +97,15 @@ class PhraseCreateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         """create phrase wtih category"""
+
+        request = self.context.get('request')
+        if not request:
+            raise ValueError("Request is required in the serializer context")
+
+        validated_data['user'] = request.user
+
         category_ids = validated_data.pop('category_ids', [])
+
         phrase = Phrase.objects.create(**validated_data)
         
         if category_ids:
@@ -109,6 +117,8 @@ class PhraseCreateSerializer(serializers.ModelSerializer):
 class TranslateRequestSerializer(serializers.Serializer):
     """
     traduction
+
+    thinks this like a form
     """
     text = serializers.CharField(max_length=5000)
     source_lang = serializers.CharField(max_length=10)

@@ -35,8 +35,7 @@ class TranslateView(APIView):
         - 400: Invalid input data
         - 503: Translation service unavailable
     """
-    permission_classes = [permissions.AllowAny]   #TODO: CHANGE FOR permission_classes = [IsAuthenticated]
-
+    permission_classes = [IsAuthenticated]  
     def post(self, request):
         serializer = TranslateRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -133,5 +132,29 @@ class PhraseViewSet(viewsets.ModelViewSet):
         
     """
         serializer.save(user=self.request.user)
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+   This works for handling phrase categories 
+
+    ENDPOINTS:
+    GET /api/phrases/categories/       - List all categories (paginated)
+    GET /api/phrases/categories/{id}/  - Retrieve a specific category
+
+    AVAILABLE FILTERS:
+    ?type=grammar  - Only grammar categories
+    ?type=theme    - Only theme categories
+
+    EXAMPLES:
+    /api/phrases/categories/?type=grammar
+    /api/phrases/categories/?page=2
+
+    """
+    queryset = Category.objects.all().order_by("name")
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["type"]
     
 

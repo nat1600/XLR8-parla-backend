@@ -1,17 +1,41 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
-
-from .serializers import TranslateRequestSerializer, TranslateResponseSerializer
+from rest_framework.decorators import action
+from rest_framework import status, permissions, viewsets
+from .serializers import (
+    LanguageSerializer,
+    CategorySerializer,
+    PhraseListSerializer,
+    PhraseDetailSerializer,
+    PhraseCreateSerializer,
+    TranslateRequestSerializer,
+    TranslateResponseSerializer,
+)
 from .services.translation_service import TranslationService
-from .models import Phrase, Language
-
+from .models import Phrase, Language, Category
+from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 # Create your views here.
 
 
 class TranslateView(APIView):
-    permission_classes = [permissions.AllowAny]   #TODO: ONLY FOR TESTING, BUT THIS IS WITH USER AUTEN
+
+    """
+    Real-time text translation endpoint
+    POST /api/phrases/translate/
+    }
+    Example: 
+        Request:  {"text": "dog", "source_lang": "en", "target_lang": "es"}
+        Response: {"original": "dog", "translation": "perro", "pronunciation": null, "source_lang": "en", "target_lang": "es"}
+
+     Response Codes:
+        - 200: Successful translation
+        - 400: Invalid input data
+        - 503: Translation service unavailable
+    """
+    permission_classes = [permissions.AllowAny]   #TODO: CHANGE FOR permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = TranslateRequestSerializer(data=request.data)
@@ -44,3 +68,70 @@ class TranslateView(APIView):
         response_serializer.is_valid(raise_exception=True)
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
+    
+class PhraseViewSet(viewsets.ModelViewSet):
+    """
+    CRUD for user's phrases with filtering and search endpoint
+    GET, POST    /api/phrases/
+    GET, PUT, PATCH, DELETE /api/phrases/{id}/
+
+    Examples:
+        # List English to Spanish phrases containing "hello"
+        GET /api/phrases/?source_language=en&target_language=es&search=hello
+        
+        # Create new phrase
+        POST /api/phrases/
+        {
+            "original_text": "Good morning",
+            "translated_text": "Buenos dias", 
+            "source_language": 1,
+            "target_language": 2
+        }
+        
+        # Response
+        {
+            "id": 15,
+            "original_text": "Good morning",
+            "translated_text": "Buenos dias",
+            "source_language": "en",
+            "target_language": "es"
+        }
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    filterset_fields = ["source_language", "target_language", "source_type"]  
+    search_fields =  ["original_text", "translated_text"]
+    ordering_fields = ["created_at", "updated_at"]
+    ordering = ["-created_at"]
+
+    def get_queryset(self):
+        """
+            Return only current users phrases 
+        """
+        return (
+            Phrase.objects.filter(user=self.request.user)
+            .select_related("source_language", "target_language", "user")
+            .prefetch_related("categories")
+        )
+    
+    def get_serializer_class(self):
+        """
+            Use different serializers for different actions.
+        """
+        if self.action == 'list':
+            return PhraseListSerializer
+        if self.action in ["create", "update", "partial_update"]:
+            return PhraseCreateSerializer
+        return PhraseDetailSerializer
+    
+    def perform_create(self, serializer):
+        """
+        Auto-assign current user to new phrases.
+        
+    """
+        serializer.save(user=self.request.user)
+    
+

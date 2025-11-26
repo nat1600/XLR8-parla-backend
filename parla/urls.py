@@ -17,10 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.urls import path
+from users import views as user_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/phrases/', include('phrases.urls')),
+    # django-allauth endpoints (social login callbacks live under /accounts/...)
+    # custom endpoint to accept Google id_token from frontend
+    path('accounts/google/login/callback', user_views.google_login_callback),
+    path('accounts/', include('allauth.urls')),
     ## URLS from the apis we have already created (phrases, translate, users, flashcards)
 ## TODO: Fix error here, read django documentation
     # path('api/phrases/', include('phrases.urls')),

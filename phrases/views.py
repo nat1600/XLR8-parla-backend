@@ -14,7 +14,6 @@ from .serializers import (
 )
 from .services.translation_service import TranslationService
 from .models import Phrase, Language, Category
-from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 # Create your views here.
@@ -35,7 +34,7 @@ class TranslateView(APIView):
         - 400: Invalid input data
         - 503: Translation service unavailable
     """
-    permission_classes = [IsAuthenticated]  
+    # Authentication is enforced globally via REST_FRAMEWORK settings (TokenAuthentication only)  
     def post(self, request):
         serializer = TranslateRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -97,7 +96,8 @@ class PhraseViewSet(viewsets.ModelViewSet):
         }
     """
 
-    permission_classes = [IsAuthenticated]
+    # Authentication is enforced globally via REST_FRAMEWORK settings (TokenAuthentication only)
+    permission_classes = [permissions.IsAuthenticated]
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
@@ -152,7 +152,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Category.objects.all().order_by("name")
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated]
+    # Authentication is enforced globally via REST_FRAMEWORK settings (TokenAuthentication only)
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["type"]

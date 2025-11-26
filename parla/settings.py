@@ -34,7 +34,17 @@ INSTALLED_APPS = [
     'django_filters',
     # Third party
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
+
+    # required by django-allauth
+    'django.contrib.sites',
+
+    #oauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     
     # APPS FROM OUR PROJECT 
     'users',           # ← Primero users
@@ -55,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'parla.urls'
@@ -132,11 +143,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # CORS Settings 
-CORS_ALLOW_ALL_ORIGINS = True  # Only for develpment guysss
-
+CORS_ALLOW_ALL_ORIGINS = False  # Only for develpment guysss
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'users.authentication.BearerTokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': [
@@ -146,3 +167,23 @@ REST_FRAMEWORK = {
 
 # DeepL API Key
 DEEPL_API_KEY = config('DEEPL_API_KEY')
+
+
+# django-allauth settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID'),
+            'secret': config('GOOGLE_CLIENT_SECRET'),
+        }
+    }
+}
+
+# Sites framework (required by django-allauth)
+SITE_ID = 1
+
+# authentication backends: include allauth backend so social auth works
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)

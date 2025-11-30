@@ -18,8 +18,11 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 # Create your views here.
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class TranslateView(APIView):
 
     """
@@ -35,8 +38,10 @@ class TranslateView(APIView):
         - 400: Invalid input data
         - 503: Translation service unavailable
     """
+    
     permission_classes = [IsAuthenticated]  
     def post(self, request):
+        print("📥 RAW DATA:", request.data)
         serializer = TranslateRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

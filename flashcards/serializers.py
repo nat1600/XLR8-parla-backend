@@ -16,6 +16,8 @@ class FlashcardReviewSerializer(serializers.ModelSerializer):
             'id',
             'phrase',
             'repetitions',
+            'ease_factor',
+            'interval_days',
             'next_review_date',
             'total_reviews',
             'correct_reviews',
@@ -42,6 +44,7 @@ class PracticeSessionDetailSerializer(serializers.ModelSerializer):
             'id',
             'phrase',
             'was_correct',
+            'score',
             'response_time_seconds',
             'answered_at',
         ]
@@ -63,7 +66,6 @@ class PracticeSessionSerializer(serializers.ModelSerializer):
         model = PracticeSession
         fields = [
             'id',
-            'user',
             'session_type',
             'session_type_display',
             'phrases_practiced',
@@ -75,6 +77,7 @@ class PracticeSessionSerializer(serializers.ModelSerializer):
             'accuracy',
             'started_at',
             'completed_at',
+            'mode_data',
             'details',
         ]
         read_only_fields = [
@@ -98,7 +101,7 @@ class PracticeSessionSerializer(serializers.ModelSerializer):
 
 class PracticeSessionCreateSerializer(serializers.ModelSerializer):
     """
-    Serializer para crear sesión de práctica
+    Serializer when the user stats a practice session
     """
     class Meta:
         model = PracticeSession
@@ -113,3 +116,4 @@ class ReviewAnswerSerializer(serializers.Serializer):
     session_id = serializers.IntegerField()
     was_correct = serializers.BooleanField()
     response_time = serializers.IntegerField(required=False, allow_null=True)
+    score = serializers.IntegerField(required=False, default=0)

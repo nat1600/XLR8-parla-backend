@@ -9,14 +9,19 @@ from rest_framework.permissions import IsAuthenticated
 from .models import FlashcardReview, PracticeSession, PracticeSessionDetail
 from .serializers import (
     FlashcardReviewSerializer,
-    FlashcardSM2AnswerSerializer
+    FlashcardSM2AnswerSerializer,
+    PracticeSessionCreateSerializer,
+    PracticeSessionSerializer,
+    PracticeSessionDetailSerializer
 
 )
 
 from phrases.models import Phrase
 from flashcards.services.sm2 import sm2 
 
-
+# ========================
+# FLASHCARDS BASE
+# ========================
 class FlashcardsDueView(APIView):
     """
          Retrieve flashcards that are due for review based on spaced repetition scheduling.sm2.
@@ -137,3 +142,172 @@ class FlashDetailView(generics.RetrieveUpdateDestroyAPIView):
         return FlashcardReview.objects.filter(user = self.request.user)
 
 
+# ========================
+# PRACTICE SESSION BASE
+# ========================================================0
+
+class StartPracticeSessionView(APIView):
+    """
+    create a new practice session
+    ENDPOINT:
+        POST /api/practice-sessions/
+    BODY: {"session_type": "timed|matching|quiz"}
+
+
+    EXAMPLE: 
+        POST /api/practice-sessions/
+        {
+        "session_type":"quiz"
+        }
+
+    """
+
+    permission_classes = [IsAuthenticated]
+
+
+    def post(self, request):
+          
+            user = request.user
+            session_type = request.data.get("session_type")
+
+            if session_type not in ["flashcard", "timed", "matching", "quiz"]:
+                return Response({"error": "not valid cause is not in session__tyoe"}, status=400)
+
+            session = PracticeSession.objects.create(
+                user=user,
+                session_type=session_type,
+                started_at=timezone.now(),
+                completed=False
+            )
+
+            return Response(PracticeSessionSerializer(session).data, status=201)
+            
+
+
+class AddPracticeDetailView(APIView):
+
+    """
+    Register an answer.
+    Records an individual practice attempt.
+      Each call adds one practice detail and updates session statistics in real-time
+
+    ENDPOINT:
+        POST /api/practice-sessions/{session_id}/details/
+
+    EXAMPLE:
+        POST /api/practice-sessions/123/details/
+        Content-Type: application/json
+        
+        {
+            "phrase_id": 456,
+            "was_correct": true,
+            "response_time_seconds": 2.5
+        }
+    
+    """
+
+    permission_classes = [IsAuthenticated]
+    def post(self, request, session_id):
+        try:
+            practice_session  = PracticeSession.objects.get(id=session_id, user=request.user)
+        except PracticeSession.DoesNotExist:
+            return Response({"error": "session not founf"}, status=404)
+
+        phrase_id = request.data.get("phrase_id")
+        was_correct = request.data.get("was_correct")
+        response_time = request.data.get("response_time_seconds", 0)
+
+        try:
+            phrase = Phrase.objects.get(id=phrase_id)
+        except Phrase.DoesNotExist:
+            return Response({"error": "Phrase not found"}, status=404)
+
+        detail = PracticeSessionDetail.objects.create(
+            practice_session =practice_session ,
+            phrase=phrase,
+            was_correct=was_correct,
+            response_time_seconds=response_time,
+            answered_at=timezone.now()
+        )
+
+        # stadistics
+        if was_correct:
+            practice_session.correct_answers += 1
+            practice_session.points_earned += 10
+        else:
+            practice_session.incorrect_answers += 1
+
+        practice_session.phrases_practiced += 1
+        practice_session.save()
+
+        return Response(PracticeSessionDetailSerializer(detail).data, status=201)
+    
+
+
+class PracticeSessionListView(generics.ListAPIView):
+    """
+    Lisrs user´s practice sessions
+
+    Retrieve all practice sessions for the authenticated user
+    ordered by most recent first.
+
+    ENDPOINT:
+        GET /api/practice-sessions/
+    EXAMPLE:
+        GET /api/practice-sessions/
+        
+    """
+    serializer_class = PracticeSessionCreateSerializer
+
+    def get_queryset(self):
+        return PracticeSession.objects.filter(user=self.request.user).order_by("-started_at")
+    
+
+class PracticeSessionDetailView(generics.RetrieveAPIView):
+
+    """
+    Get detailed information about a specific practice session,
+    including all individual practice details (answers).
+
+     ENDPOINT:
+        GET /api/practice-sessions/{session_id}/
+
+
+    """
+    serializer_class = PracticeSessionSerializer
+    lookup_field = "id"
+
+    def get_queryset(self):
+        return PracticeSession.objects.filter(user=self.request.user)
+    
+class CompletePracticeSessionView(APIView):
+
+    """"
+    Mark an active practice session as completed and calculate its duration.
+    ENDPOINT:
+        POST /api/practice-sessions/{session_id}/complete/
+
+        EXAMPLE:
+        POST /api/practice-sessions/123/complete/
+        Content-Type: application/json
+        
+        {}
+    """
+    def post(self, request, session_id):
+        try:
+            session = PracticeSession.objects.get(id=session_id, user=request.user)
+        except PracticeSession.DoesNotExist:
+            return Response({"error": "session not found"}, status=404)
+
+        if session.completed:
+            return Response({"error": "The session is finished"}, status=400)
+
+        session.completed = True
+        session.completed_at = timezone.now()
+        session.duration_seconds = (session.completed_at - session.started_at).seconds
+        session.save()
+
+        return Response(PracticeSessionSerializer(session).data)
+
+
+        

@@ -21,6 +21,8 @@ from django.urls import path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/phrases/', include('phrases.urls')),
+    path('api/flashcards/', include('flashcards.urls')),
+
     ## URLS from the apis we have already created (phrases, translate, users, flashcards)
 ## TODO: Fix error here, read django documentation
     # path('api/phrases/', include('phrases.urls')),

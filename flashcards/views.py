@@ -9,9 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import FlashcardReview, PracticeSession, PracticeSessionDetail
 from .serializers import (
     FlashcardReviewSerializer,
-    PracticeSessionSerializer,
-    PracticeSessionDetailSerializer,
-    PracticeAnswerSerializer
+    FlashcardSM2AnswerSerializer
+
 )
 
 from phrases.models import Phrase
@@ -70,38 +69,27 @@ class FlashcardAnswerView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, phrase_id):
-        quality = request.data.get("quality")
+        serializer = FlashcardSM2AnswerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if quality is None:
-            return Response(
-                {"error": "'QUALITy' is mandatory"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        quality = serializer.validated_data["quality"]
 
-        try:
-            quality = int(quality)
-        except ValueError:
-            return Response(
-                {"error": "'quality' must be an integer."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # This create or obtain SM-2 register
+        # Obtain or create the SM-2 record
         review, _ = FlashcardReview.objects.get_or_create(
             user=request.user,
             phrase_id=phrase_id
         )
 
+        # Apply SM-2 algorithm
         sm2(review, quality)
 
         return Response({
-            "message": "worrrk, nice:3",
+            "message": "Flashcard updated successfully.",
             "interval_days": review.interval,
             "ef": review.ef,
             "repetitions": review.repetitions,
             "next_review": review.next_review_date
         })
-
 
         
 class FlashListCreateView(generics.ListCreateAPIView):

@@ -5,6 +5,8 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
+from django.db import transaction
 
 from .models import FlashcardReview, PracticeSession, PracticeSessionDetail
 from .serializers import (
@@ -18,6 +20,12 @@ from .serializers import (
 
 from phrases.models import Phrase
 from flashcards.services.sm2 import sm2 
+import random
+
+from .helpers import (
+    choose_phrases_for_user,
+    award_points_for_answer
+)
 
 # ========================
 # FLASHCARDS BASE
@@ -244,6 +252,9 @@ class AddPracticeDetailView(APIView):
     
 
 
+    
+
+
 class PracticeSessionListView(generics.ListAPIView):
     """
     Lisrs user´s practice sessions
@@ -308,6 +319,117 @@ class CompletePracticeSessionView(APIView):
         session.save()
 
         return Response(PracticeSessionSerializer(session).data)
+
+
+        
+#//////////
+#MATCH 
+#------------------------
+
+class MatchingStartView(APIView):
+    """
+
+    Start a new matching game session
+
+    ENDPOINT:
+        POST /api/flashcards/matching/start/
+
+    EXAMPLE REQUEST:
+        POST /api/flashcards/matching/start/
+        
+        {
+            "pairs": whatever fronts wants :), it mustt be an integer, prefereably between 4-5
+        }
+
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        pairs = int(request.data.get('pairs', 8))
+        phrases = choose_phrases_for_user(request.user, pairs)
+
+        # build pairs      : left = original_text , right = translated_text
+        left = [{"id": p.id, "text": p.original_text} for p in phrases]
+        right = [{"id": p.id, "text": p.translated_text} for p in phrases]
+
+  
+        random.shuffle(right)
+
+        session = PracticeSession.objects.create(
+            user=request.user,
+            session_type="matching",
+            mode_data={"pairs": [p.id for p in phrases], "right_order": [r["id"] for r in right]},
+            started_at=timezone.now(),
+            completed=False
+        )
+
+        return Response({
+            "session": PracticeSessionSerializer(session).data,
+            "left": left,
+            "right": right
+        }, status=status.HTTP_201_CREATED)
+    
+
+
+    
+class MatchingCheckView(APIView):
+    """
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get("session_id")
+        matches = request.data.get("matches", [])
+
+        try:
+            session = PracticeSession.objects.get(id=session_id, user=request.user)
+        except PracticeSession.DoesNotExist:
+            return Response({"error": "Sesión no encontrada"}, status=404)
+
+        results = []
+        correct_count = 0
+
+        for m in matches:
+            left_id = m.get("left_id")
+            right_id = m.get("right_id")
+            try:
+                left_phrase = Phrase.objects.get(id=left_id)
+                right_phrase = Phrase.objects.get(id=right_id)
+            except Phrase.DoesNotExist:
+                results.append({"left_id": left_id, "right_id": right_id, "correct": False, "error": "phrase not found"})
+                continue
+
+            is_correct = (left_phrase.id == right_phrase.id)
+            results.append({"left_id": left_id, "right_id": right_id, "correct": is_correct})
+            if is_correct:
+                correct_count += 1
+
+            # log detail
+            PracticeSessionDetail.objects.create(
+                practice_session=session,
+                phrase=left_phrase,
+                was_correct=is_correct,
+                response_time_seconds=None
+            )
+
+            if is_correct:
+                session.correct_answers += 1
+            else:
+                session.incorrect_answers += 1
+            session.phrases_practiced += 1
+            award_points_for_answer(session, is_correct, base=8)
+
+        session.save()
+
+        return Response({
+            "results": results,
+            "summary": PracticeSessionSerializer(session).data
+        })
+
+        
+
+
 
 
         

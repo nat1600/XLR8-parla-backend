@@ -11,6 +11,8 @@ from .views import (
     CompletePracticeSessionView,
     PracticeSessionListView,
     PracticeSessionDetailView,
+    MatchingStartView,
+    MatchingCheckView
 )
 
 urlpatterns = [
@@ -33,7 +35,13 @@ urlpatterns = [
     path('practice-sessions/<int:id>/', PracticeSessionDetailView.as_view()),
 
     path('practice-sessions/<int:session_id>/detail/', AddPracticeDetailView.as_view()),
-    
+
     path('practice-sessions/<int:session_id>/complete/', CompletePracticeSessionView.as_view()),
+
+
+    # matching
+    path('matching/start/', MatchingStartView.as_view(), name='matching-start'),
+    path('matching/check/', MatchingCheckView.as_view(), name='matching-check'),
+
 
 ]

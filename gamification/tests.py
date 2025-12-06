@@ -1,79 +1,134 @@
-from django.test import TestCase
+from django.urls import reverse
 from django.contrib.auth import get_user_model
-from gamification.models import UserStreak, DailyStatistic, UserAchievement
+from rest_framework.test import APITestCase
+from rest_framework import status
 from datetime import date, timedelta
 
+from gamification.services.streak_service import StreakService
+from gamification.services.points_service import PointsService
+from gamification.models import DailyStatistic, UserAchievement
 
-class UserStreakTests(TestCase):
+User = get_user_model()
+
+
+# Streak service tests
+class TestStreakService(APITestCase):
+
     def setUp(self):
-        User = get_user_model()
         self.user = User.objects.create_user(
-            email="test@example.com",
-            password="123456"
+            username="user_streak",
+            password="test123"
         )
 
-    def test_streak_initially_zero(self):
-        streak = UserStreak.objects.create(user=self.user)
-        self.assertEqual(streak.streak_count, 0)
-        self.assertEqual(streak.best_streak, 0)
-        self.assertIsNone(streak.last_activity)
+    def test_initial_streak(self):
+        result = StreakService.register_activity(self.user)
+        self.user.refresh_from_db()
+        self.assertEqual(result["streak"], 1)
 
     def test_streak_increment(self):
-        streak = UserStreak.objects.create(user=self.user)
-        streak.last_activity = date.today() - timedelta(days=1)
-        streak.streak_count = 3
-        streak.save()
+        self.user.current_streak = 1
+        self.user.last_practice_date = date.today() - timedelta(days=1)
+        self.user.save()
 
-        # Simulate today activity
-        today = date.today()
-        streak.last_activity = today
-        streak.streak_count += 1
-        streak.best_streak = max(streak.best_streak, streak.streak_count)
-        streak.save()
+        result = StreakService.register_activity(self.user)
+        self.assertEqual(result["streak"], 2)
 
-        self.assertEqual(streak.streak_count, 4)
-        self.assertEqual(streak.best_streak, 4)
-        self.assertEqual(streak.last_activity, today)
+    def test_streak_reset(self):
+        self.user.current_streak = 10
+        self.user.last_practice_date = date.today() - timedelta(days=3)
+        self.user.save()
+
+        result = StreakService.register_activity(self.user)
+        self.assertEqual(result["streak"], 1)
 
 
-class DailyStatisticTests(TestCase):
+# Points Service Tests
+class TestPointsService(APITestCase):
+
     def setUp(self):
-        User = get_user_model()
         self.user = User.objects.create_user(
-            email="daily@example.com",
-            password="123456"
+            username="user_points",
+            password="test123"
         )
 
-    def test_daily_statistic_creation(self):
-        stat = DailyStatistic.objects.create(
-            user=self.user,
-            date=date.today(),
-            phrases_practiced=10,
-            correct_answers=8,
-            practice_minutes=5,
-            points_earned=20,
-            streak_maintained=True,
-        )
+    def test_add_points(self):
+        PointsService.add_points(self.user, 50)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.total_points, 50)
 
-        self.assertEqual(stat.phrases_practiced, 10)
-        self.assertEqual(stat.correct_answers, 8)
+    def test_daily_stats_created(self):
+        PointsService.add_points(self.user, 20)
+
+        stat = DailyStatistic.objects.filter(user=self.user).first()
+        self.assertIsNotNone(stat)
         self.assertEqual(stat.points_earned, 20)
-        self.assertTrue(stat.streak_maintained)
 
 
-class UserAchievementTests(TestCase):
+# Achievements Tests
+class TestAchievements(APITestCase):
+
     def setUp(self):
-        User = get_user_model()
         self.user = User.objects.create_user(
-            email="achiever@example.com",
-            password="123456"
+            username="user_ach",
+            password="test123"
         )
 
-    def test_achievement_assignment(self):
-        achievement = UserAchievement.objects.create(
+    def test_points_achievement(self):
+        PointsService.add_points(self.user, 2000)
+        self.assertTrue(
+            UserAchievement.objects.filter(
+                user=self.user,
+                achievement_type="points_1000"
+            ).exists()
+        )
+
+    def test_streak_achievement(self):
+        self.user.current_streak = 7
+        self.user.last_practice_date = date.today() - timedelta(days=1)
+        self.user.save()
+
+        StreakService.register_activity(self.user)
+
+        self.assertTrue(
+            UserAchievement.objects.filter(
+                user=self.user,
+                achievement_type="streak_7"
+            ).exists()
+        )
+
+
+# Endpoint Tests 
+class TestGamificationEndpoints(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="user_api",
+            password="test123"
+        )
+        self.client.login(username="user_api", password="test123")
+
+    def test_get_streak(self):
+        url = reverse("current-streak")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_add_points_endpoint(self):
+        url = reverse("add-points")
+        response = self.client.post(url, {"amount": 30})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["total_points"], 30)
+
+    def test_achievements_endpoint(self):
+        UserAchievement.objects.create(
             user=self.user,
-            achievement_type="streak_7"
+            achievement_type="points_1000"
         )
 
-        self.assertEqual(achievement.user, self.user)
-        self.assertEqual(achievement.achievement_type, "streak_7")
+        url = reverse("user-achievements")
+        response = self.client.get(url)
+        self.assertGreater(len(response.data), 0)
+
+    def test_leaderboard_endpoint(self):
+        url = reverse("leaderboard")
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)

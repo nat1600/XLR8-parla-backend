@@ -21,6 +21,8 @@ from django.urls import path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/phrases/', include('phrases.urls')),
+    path('api/users/', include('users.urls')),
+    ## TODO: Add these routes when ready
     path('api/flashcards/', include('flashcards.urls')),
 
     ## URLS from the apis we have already created (phrases, translate, users, flashcards)
@@ -28,5 +30,4 @@ urlpatterns = [
     # path('api/phrases/', include('phrases.urls')),
     # path('api/gamification/', include('gamification.urls')),
     # path('api/flashcards/', include('flashcards.urls')),
-    # path('api/users/', include('users.urls')),
 ]

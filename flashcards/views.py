@@ -463,7 +463,6 @@ class MatchingFinishView(APIView):
         
 class TimedStartView(APIView):
     """
-    
     TODO: DOCUMENTATION
     """
 

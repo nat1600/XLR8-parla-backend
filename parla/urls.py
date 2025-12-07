@@ -23,6 +23,11 @@ urlpatterns = [
     path('api/phrases/', include('phrases.urls')),
     path('api/users/', include('users.urls')),
     ## TODO: Add these routes when ready
+    path('api/flashcards/', include('flashcards.urls')),
+
+    ## URLS from the apis we have already created (phrases, translate, users, flashcards)
+## TODO: Fix error here, read django documentation
+    # path('api/phrases/', include('phrases.urls')),
     # path('api/gamification/', include('gamification.urls')),
     # path('api/flashcards/', include('flashcards.urls')),
 ]

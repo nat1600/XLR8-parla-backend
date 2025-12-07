@@ -374,6 +374,8 @@ class MatchingStartView(APIView):
     
 class MatchingCheckView(APIView):
     """
+    
+    TODO: DOCUMENTATION
     """
 
     permission_classes = [IsAuthenticated]
@@ -427,9 +429,136 @@ class MatchingCheckView(APIView):
             "summary": PracticeSessionSerializer(session).data
         })
 
+
+class MatchingFinishView(APIView):
+    """
+    
+    TODO: DOCUMENTATION
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get("session_id")
+        try:
+            session = PracticeSession.objects.get(id=session_id, user=request.user)
+        except PracticeSession.DoesNotExist:
+            return Response({"error":"session not found"}, status=404)
+
+        if session.completed:
+            return Response({"detail":"session completed"}, status=400)
         
+        session.completed = True
+        session.completed_at = timezone.now()
+        if session.started_at:
+            session.duration_seconds = (session.completed_at - session.started_at).seconds
+        session.save()
+
+        return Response({"session": PracticeSessionSerializer(session).data})
 
 
 
-
+#//////////
+#timed 
+#------------------------
         
+class TimedStartView(APIView):
+    """
+    
+    TODO: DOCUMENTATION
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        seconds = int(request.data.get("seconds", 60))
+        count = int(request.data.get("count", 20))
+
+        phrases = choose_phrases_for_user(request.user, count)
+
+        session = PracticeSession.objects.create(
+            user=request.user,
+            session_type="timed",
+            mode_data={"time_limit_seconds": seconds, "question_ids": [p.id for p in phrases], "current_index": 0, "start_ts": timezone.now().isoformat()},
+            started_at=timezone.now(),
+            completed=False
+        )
+
+        questions = [{"id": p.id, "original_text": p.original_text} for p in phrases]
+
+        return Response({
+            "session": PracticeSessionSerializer(session).data,
+            "questions": questions,
+            "time_limit_seconds": seconds
+        }, status=status.HTTP_201_CREATED)
+
+
+class TimedAnswerView(APIView):
+
+    """
+    
+    TODO: DOCUMENTATION
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get("session_id")
+        phrase_id = request.data.get("phrase_id")
+        user_answer = (request.data.get("user_answer") or "").strip()
+
+        try:
+            session = PracticeSession.objects.get(id=session_id, user=request.user)
+        except PracticeSession.DoesNotExist:
+            return Response({"error":"SesSION NOT FOUND"}, status=404)
+
+        try:
+            phrase = Phrase.objects.get(id=phrase_id)
+        except Phrase.DoesNotExist:
+            return Response({"error":"phrase not found"}, status=404)
+
+        expected = (phrase.translated_text or "").strip()
+        correct = False
+        if expected:
+            if user_answer.lower() == expected.lower() or user_answer.lower() in expected.lower() or expected.lower() in user_answer.lower():
+                correct = True
+
+        detail = PracticeSessionDetail.objects.create(
+            practice_session=session,
+            phrase=phrase,
+            was_correct=correct,
+            response_time_seconds=request.data.get("elapsed_seconds", None)
+        )
+
+        if correct:
+            session.correct_answers += 1
+        else:
+            session.incorrect_answers += 1
+        session.phrases_practiced += 1
+        award_points_for_answer(session, correct, base=12)
+        session.save()
+
+        return Response({"detail": PracticeSessionDetailSerializer(detail).data, "correct": correct, "session": PracticeSessionSerializer(session).data})
+
+
+class TimedFinishView(APIView):
+    """
+    POST /api/timed/finish/
+    Body: {"session_id": 1}
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get("session_id")
+        try:
+            session = PracticeSession.objects.get(id=session_id, user=request.user)
+        except PracticeSession.DoesNotExist:
+            return Response({"error":"session not found"}, status=404)
+
+        if session.completed:
+            return Response({"detail":"sessiin completed"}, status=400)
+
+        session.completed = True
+        session.completed_at = timezone.now()
+        if session.started_at:
+            session.duration_seconds = (session.completed_at - session.started_at).seconds
+        session.save()
+        return Response({"session": PracticeSessionSerializer(session).data})

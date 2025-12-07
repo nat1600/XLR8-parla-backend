@@ -12,7 +12,11 @@ from .views import (
     PracticeSessionListView,
     PracticeSessionDetailView,
     MatchingStartView,
-    MatchingCheckView
+    MatchingCheckView,
+    MatchingFinishView,
+    TimedStartView,
+    TimedAnswerView,
+    TimedFinishView
 )
 
 urlpatterns = [
@@ -42,6 +46,11 @@ urlpatterns = [
     # matching
     path('matching/start/', MatchingStartView.as_view(), name='matching-start'),
     path('matching/check/', MatchingCheckView.as_view(), name='matching-check'),
+    path('matching/finish/', MatchingFinishView.as_view(), name='matching-finish'),
 
+    #timed
+    path('timed/start/', TimedStartView.as_view(), name='timed-start'),
+    path('timed/answer/', TimedAnswerView.as_view(), name='timed-answer'),
+    path('timed/finish/', TimedFinishView.as_view(), name='timed-finish'),
 
 ]

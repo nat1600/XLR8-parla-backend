@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import User
 from .serializers import UserSerializer
 import jwt
@@ -11,6 +13,7 @@ from datetime import datetime, timedelta
 import requests as http_requests
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class GoogleLoginView(APIView):
     """
     Endpoint para login con Google usando access token
@@ -105,9 +108,8 @@ class GoogleLoginView(APIView):
                 key='parla_session',
                 value=jwt_token,
                 httponly=True,
-                # En HTTPS permitimos SameSite=None para terceros (YouTube)
-                secure=True,
-                samesite='None',
+                secure=False,
+                samesite='Lax',
                 max_age=60*60*24*7,  # 1 semana
             )
             
@@ -133,6 +135,7 @@ class GoogleLoginView(APIView):
         return token
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UserProfileView(APIView):
     """
     Endpoint para obtener el perfil del usuario autenticado

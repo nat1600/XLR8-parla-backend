@@ -62,7 +62,7 @@ class PracticeSessionDetailSerializer(serializers.ModelSerializer):
             'id',
             'phrase',
             'was_correct',
-            'score',
+            
             'response_time_seconds',
             'answered_at',
         ]
@@ -97,6 +97,7 @@ class PracticeSessionSerializer(serializers.ModelSerializer):
             'completed_at',
             'mode_data',
             'details',
+            'user',
         ]
         read_only_fields = [
             'id',
@@ -107,10 +108,14 @@ class PracticeSessionSerializer(serializers.ModelSerializer):
             'points_earned',
             'duration_seconds',
             'started_at',
+            'completed_at',
+            'mode_data',
+            'accuracy',
+            'session_type_display',
         ]
     
     def get_accuracy(self, obj):
-        """sucess"""
+        """Calculate success percentage for the session."""
         total = obj.correct_answers + obj.incorrect_answers
         if total == 0:
             return 0
@@ -131,10 +136,10 @@ class ReviewAnswerSerializer(serializers.Serializer):
     resgister
     """
     phrase_id = serializers.IntegerField()
-    session_id = serializers.IntegerField()
+    practice_session  = serializers.IntegerField()
     was_correct = serializers.BooleanField()
     response_time = serializers.IntegerField(required=False, allow_null=True)
-    score = serializers.IntegerField(required=False, default=0)
+    
 
 
 

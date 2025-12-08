@@ -41,7 +41,7 @@ class TranslateView(APIView):
     
     permission_classes = [IsAuthenticated]  
     def post(self, request):
-        print("📥 RAW DATA:", request.data)
+        print(" RAW DATA:", request.data)
         serializer = TranslateRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

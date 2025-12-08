@@ -4,6 +4,23 @@ import jwt
 from .models import User
 
 
+class CSRFExemptAPIMiddleware:
+    """
+    Middleware para eximir CSRF en endpoints API
+    """
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Eximir CSRF para rutas /api/
+        if request.path.startswith('/api/'):
+            request._dont_enforce_csrf_checks = True
+        
+        response = self.get_response(request)
+        return response
+
+
 class JWTAuthenticationMiddleware:
     """
     Middleware para autenticar usuarios usando JWT desde cookies
@@ -13,8 +30,8 @@ class JWTAuthenticationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Obtener el token JWT de la cookie
-        token = request.COOKIES.get('session')
+        # Obtener el token JWT de la cookie 'parla_session'
+        token = request.COOKIES.get('parla_session')
         
         if token:
             try:

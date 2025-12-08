@@ -1,15 +1,19 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import User
+from .serializers import UserSerializer
 import jwt
 from datetime import datetime, timedelta
 import requests as http_requests
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class GoogleLoginView(APIView):
     """
     Endpoint para login con Google usando access token
@@ -101,10 +105,10 @@ class GoogleLoginView(APIView):
             
             # Setear cookie JWT
             response.set_cookie(
-                key='session',
+                key='parla_session',
                 value=jwt_token,
                 httponly=True,
-                secure=not settings.DEBUG,  # True en producción
+                secure=False,
                 samesite='Lax',
                 max_age=60*60*24*7,  # 1 semana
             )
@@ -129,3 +133,25 @@ class GoogleLoginView(APIView):
         
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
         return token
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UserProfileView(APIView):
+    """
+    Endpoint para obtener el perfil del usuario autenticado
+    GET /api/users/profile/
+    Requiere: sesión válida (cookie de sesión o JWT)
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Retorna los datos del usuario autenticado"""
+        try:
+            user = request.user
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'error': f'Error al obtener perfil: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

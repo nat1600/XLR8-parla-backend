@@ -13,8 +13,8 @@ class JWTAuthenticationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Obtener el token JWT de la cookie
-        token = request.COOKIES.get('session')
+        # Obtener el token JWT de la cookie 'parla_session'
+        token = request.COOKIES.get('parla_session')
         
         if token:
             try:

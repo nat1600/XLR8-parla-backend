@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'users.middleware.CSRFExemptAPIMiddleware',  # ← Eximir CSRF para /api/
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'users.middleware.JWTAuthenticationMiddleware',  # ← JWT desde cookie
@@ -136,10 +137,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = False  # Cambiar a False por seguridad
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
+    "chrome-extension://moehmphhjgmgonplmjeaglfkolcklpkh",
 ]
 CORS_ALLOW_CREDENTIALS = True  # ← IMPORTANTE para cookies
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
+    "chrome-extension://moehmphhjgmgonplmjeaglfkolcklpkh",
 ]
 
 

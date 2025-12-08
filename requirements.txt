@@ -14,3 +14,4 @@ typing_extensions==4.13.2
 django-filter==23.2
 PyJWT==2.9.0
 google-auth==2.35.0
+requests==2.31.0

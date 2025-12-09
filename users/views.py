@@ -155,3 +155,36 @@ class UserProfileView(APIView):
                 {'error': f'Error al obtener perfil: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LogoutView(APIView):
+    """
+    Endpoint para cerrar sesión del usuario autenticado
+    POST /api/users/logout/
+    Requiere: sesión válida (cookie de sesión o JWT)
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Invalida la sesión del usuario"""
+        try:
+            # Crear respuesta exitosa
+            response = Response(
+                {
+                    'success': True,
+                    'message': 'Sesión cerrada exitosamente'
+                },
+                status=status.HTTP_200_OK
+            )
+            
+            # Eliminar la cookie de sesión
+            response.delete_cookie('parla_session')
+            
+            return response
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error al cerrar sesión: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

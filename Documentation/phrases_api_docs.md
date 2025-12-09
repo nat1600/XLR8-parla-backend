@@ -210,7 +210,7 @@ Get details of a specific phrase.
   ],
   "pronunciation": null,
   "notes": "Common greeting used before noon",
-  "source_type": "manual",
+  "source_type": "YouTube",
   "created_at": "2024-12-07T10:30:00Z",
   "updated_at": "2024-12-07T10:30:00Z"
 }

@@ -7,6 +7,9 @@ from .views import (
     AddPointsView,
     UserAchievementsView,
     LeaderboardView,
+    DailyStatsChartView,
+    WeeklyStatsView,
+    MonthlyStatsView,
 )
 
 
@@ -23,4 +26,12 @@ urlpatterns = [
 
     # Leaderboard
     path("leaderboard/", LeaderboardView.as_view(), name="leaderboard"),
+
+
+    # Statistics for charts
+    path("daily-stats/", DailyStatsChartView.as_view(), name="daily-stats-chart"),
+    path("weekly-stats/", WeeklyStatsView.as_view(), name="weekly-stats"),
+    path("monthly-stats/", MonthlyStatsView.as_view(), name="monthly-stats"),
+
+
 ]

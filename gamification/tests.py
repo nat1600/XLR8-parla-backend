@@ -13,9 +13,10 @@ from gamification.services.achievement_service import AchievementService
 User = get_user_model()
 
 
-# ========================
+
 # SERVICE TESTS
-# ========================
+# This tests are focused on the core logic of the services, here we test things like
+# point addition, streak updates, and achievement unlocking.
 
 class PointsServiceTestCase(TestCase):
     """Test PointsService functionality"""
@@ -357,9 +358,10 @@ class GamificationAPITestCase(APITestCase):
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-# ========================
 # INTEGRATION TESTS
-# ========================
+# These tests cover the interaction between different gamification components,
+# Things like earning points affecting achievements, streaks influencing stats, etc.
+
 
 class GamificationIntegrationTestCase(TestCase):
     """Test integration between different gamification components"""
@@ -423,9 +425,12 @@ class GamificationIntegrationTestCase(TestCase):
         self.assertEqual(daily_stat.points_earned, 100)
 
 
-# ========================
+
+
 # MODEL TESTS
-# ========================
+# These tests focus on the integrity and behavior of the gamification models themselves,
+# things like constraints, default values, and model methods.
+
 
 class UserAchievementModelTestCase(TestCase):
     """Test UserAchievement model"""

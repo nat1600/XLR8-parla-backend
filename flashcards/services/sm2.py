@@ -83,7 +83,7 @@ def sm2(review, quality: int):
     # Save changes to database
     review.save()
     
-    # Optional: Log the changes for debugging
+    
     print(f"SM-2 Update: "
           f"Quality={quality}, "
           f"EF: {original_ef:.2f}→{review.ef:.2f}, "

@@ -38,7 +38,6 @@ class CurrentStreakView(APIView):
 
 
 # Poins service view
-
 class UserPointsView(APIView):
     permission_classes = [IsAuthenticated]
 

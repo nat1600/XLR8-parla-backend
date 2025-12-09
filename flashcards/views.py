@@ -27,6 +27,9 @@ from .helpers import (
     award_points_for_answer
 )
 
+
+from gamification.services.points_service import PointsService
+
 # ========================
 # FLASHCARDS BASE
 # ========================
@@ -242,8 +245,10 @@ class AddPracticeDetailView(APIView):
         if was_correct:
             practice_session.correct_answers += 1
             practice_session.points_earned += 10
+            PointsService.add_points(request.user, 10)
         else:
             practice_session.incorrect_answers += 1
+
 
         practice_session.phrases_practiced += 1
         practice_session.save()
@@ -417,10 +422,12 @@ class MatchingCheckView(APIView):
 
             if is_correct:
                 session.correct_answers += 1
+                session.points_earned += 8 
+                PointsService.add_points(request.user, 8)
             else:
                 session.incorrect_answers += 1
+
             session.phrases_practiced += 1
-            award_points_for_answer(session, is_correct, base=8)
 
         session.save()
 
@@ -529,11 +536,14 @@ class TimedAnswerView(APIView):
 
         if correct:
             session.correct_answers += 1
+            session.points_earned += 12
+            PointsService.add_points(request.user, 12)
         else:
             session.incorrect_answers += 1
+        
         session.phrases_practiced += 1
-        award_points_for_answer(session, correct, base=12)
         session.save()
+
 
         return Response({"detail": PracticeSessionDetailSerializer(detail).data, "correct": correct, "session": PracticeSessionSerializer(session).data})
 

@@ -19,12 +19,14 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 # FRONTEND_URL desde .env
 FRONTEND_URL = os.getenv('FRONTEND_URL')
+RAILWAY_URL = os.getenv('RAILWAY')
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "0.0.0.0",
-    FRONTEND_URL
+    FRONTEND_URL,
+    RAILWAY_URL,
 ]
 
 

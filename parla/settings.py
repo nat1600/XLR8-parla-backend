@@ -1,29 +1,44 @@
 """
 Django settings for parla project.
 """
-from decouple import config
 import dj_database_url
 from pathlib import Path
 import os
+
+
+def require_env(name: str) -> str:
+    """Return required environment variable or raise a clear error."""
+    value = os.environ.get(name)
+    if value is None:
+        raise RuntimeError(f"{name} environment variable is required")
+    return value
+
+
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return str(value).lower() in {"1", "true", "t", "yes", "y", "on"}
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = require_env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = env_bool('DEBUG', default=False)
 
 # FRONTEND_URL desde .env
-FRONTEND_URL = config('FRONTEND_URL')
+FRONTEND_URL = os.getenv('FRONTEND_URL', '').strip()
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "0.0.0.0",
-    FRONTEND_URL
 ]
+if FRONTEND_URL:
+    ALLOWED_HOSTS.append(FRONTEND_URL)
 
 
 # Application definition
@@ -88,7 +103,7 @@ WSGI_APPLICATION = 'parla.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL'),
+        default=require_env('DATABASE_URL'),
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -142,14 +157,16 @@ CORS_ALLOW_ALL_ORIGINS = False  # Cambiar a False por seguridad
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "chrome-extension://moehmphhjgmgonplmjeaglfkolcklpkh",
-    FRONTEND_URL,
 ]
+if FRONTEND_URL:
+    CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
 CORS_ALLOW_CREDENTIALS = True  # ← IMPORTANTE para cookies
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     "chrome-extension://moehmphhjgmgonplmjeaglfkolcklpkh",
-    FRONTEND_URL,
 ]
+if FRONTEND_URL:
+    CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL)
 
 
 # REST Framework
@@ -162,7 +179,7 @@ REST_FRAMEWORK = {
 }
 
 # DeepL API Key
-DEEPL_API_KEY = config('DEEPL_API_KEY')
+DEEPL_API_KEY = require_env('DEEPL_API_KEY')
 
 # Google OAuth settings
-GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_ID = require_env('GOOGLE_CLIENT_ID')

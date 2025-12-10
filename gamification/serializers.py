@@ -1,27 +1,12 @@
+# gamification/serializers.py
 from rest_framework import serializers
 from .models import UserAchievement, DailyStatistic
+from django.contrib.auth import get_user_model
+
+# This is used to get the User model for the leaderboard
+User = get_user_model()
 
 
-class UserAchievementSerializer(serializers.ModelSerializer):
-    """
-    serializer achivementes user
-    """
-    achievement_name = serializers.CharField(
-        source='get_achievement_type_display',
-        read_only=True
-    )
-    user = serializers.StringRelatedField(read_only=True)
-    
-    class Meta:
-        model = UserAchievement
-        fields = [
-            'id',
-            'user',
-            'achievement_type',
-            'achievement_name',
-            'achieved_at',
-        ]
-        read_only_fields = ['id', 'achieved_at']
 
 
 class DailyStatisticSerializer(serializers.ModelSerializer):
@@ -77,3 +62,28 @@ class MonthlyStatsSerializer(serializers.Serializer):
     total_points = serializers.IntegerField()
     days_active = serializers.IntegerField()
     best_streak = serializers.IntegerField()
+
+class AchievementSerializer(serializers.ModelSerializer):
+    achievement_name = serializers.CharField(
+        source='get_achievement_type_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = UserAchievement
+        fields = [
+            "id",
+            "achievement_type",
+            "achievement_name",
+            "achieved_at",
+        ]
+
+
+
+class LeaderboardSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="username")
+    total_points = serializers.IntegerField()
+
+    class Meta:
+        model = User
+        fields = ["username", "total_points"]

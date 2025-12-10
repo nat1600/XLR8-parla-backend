@@ -147,7 +147,7 @@ Save a new phrase to the user's collection.
   "source_language": 1,
   "target_language": 2,
   "categories": [1, 3],
-  "pronunciation": "bweh-nos dee-as",
+  "pronunciation": null,
   "notes": "Common greeting used before noon"
 }
 ```
@@ -178,7 +178,7 @@ Save a new phrase to the user's collection.
       "type": "theme"
     }
   ],
-  "pronunciation": "bweh-nos dee-as",
+  "pronunciation": null,
   "notes": "Common greeting used before noon",
   "created_at": "2024-12-07T10:30:00Z",
   "updated_at": "2024-12-07T10:30:00Z"
@@ -208,9 +208,9 @@ Get details of a specific phrase.
       "type": "theme"
     }
   ],
-  "pronunciation": "bweh-nos dee-as",
+  "pronunciation": null,
   "notes": "Common greeting used before noon",
-  "source_type": "manual",
+  "source_type": "YouTube",
   "created_at": "2024-12-07T10:30:00Z",
   "updated_at": "2024-12-07T10:30:00Z"
 }

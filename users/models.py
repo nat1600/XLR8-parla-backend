@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser
 ## inheriting from Django's user superclass
 class User(AbstractUser):
     google_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
-    profile_picture = models.URLField(null=True, blank=True)
+    profile_picture = models.URLField(null=True, blank=True, max_length=2000)
     total_points = models.IntegerField(default=0)
     current_streak = models.IntegerField(default=0)
     longest_streak = models.IntegerField(default=0)

@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'corsheaders',
     
     # APPS FROM OUR PROJECT 
-    'users',           # ← Primero users
+    'users',
     'phrases', 
     'flashcards',
     'gamification',
@@ -49,10 +49,12 @@ AUTH_USER_MODEL = 'users.User'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # ← for  CORS
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'users.middleware.CSRFExemptAPIMiddleware',  # ← Eximir CSRF para /api/
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'users.middleware.JWTAuthenticationMiddleware',  # ← JWT desde cookie
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -132,7 +134,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # CORS Settings 
-CORS_ALLOW_ALL_ORIGINS = True  # Only for develpment guysss
+CORS_ALLOW_ALL_ORIGINS = False  # Cambiar a False por seguridad
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",
+    "chrome-extension://moehmphhjgmgonplmjeaglfkolcklpkh",
+]
+CORS_ALLOW_CREDENTIALS = True  # ← IMPORTANTE para cookies
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8080",
+    "chrome-extension://moehmphhjgmgonplmjeaglfkolcklpkh",
+]
 
 
 # REST Framework
@@ -146,4 +157,6 @@ REST_FRAMEWORK = {
 
 # DeepL API Key
 DEEPL_API_KEY = config('DEEPL_API_KEY')
-CORS_ALLOW_ALL_ORIGINS = True
+
+# Google OAuth settings
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')

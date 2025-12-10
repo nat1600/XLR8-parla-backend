@@ -49,7 +49,7 @@ class Phrase(models.Model):
     pronunciation = models.TextField(null=True, blank=True)
     source_language = models.ForeignKey(Language, on_delete=models.PROTECT, related_name='source_phrases')
     target_language = models.ForeignKey(Language, on_delete=models.PROTECT, related_name='target_phrases')
-    source_url = models.URLField(null=True, blank=True)
+    source_url = models.URLField(null=True, blank=True, max_length=2000)
     source_type = models.CharField(max_length=50, choices=SOURCE_TYPES, null=True, blank=True)
     context = models.TextField(null=True, blank=True)
     categories = models.ManyToManyField(Category, blank=True, related_name='phrases')

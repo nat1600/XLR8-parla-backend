@@ -15,11 +15,14 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+# FRONTEND_URL desde .env
+FRONTEND_URL = config('FRONTEND_URL')
+
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "0.0.0.0",
-    "172.20.6.17",
+    FRONTEND_URL
 ]
 
 
@@ -134,15 +137,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # CORS Settings 
+
 CORS_ALLOW_ALL_ORIGINS = False  # Cambiar a False por seguridad
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "chrome-extension://moehmphhjgmgonplmjeaglfkolcklpkh",
+    FRONTEND_URL,
 ]
 CORS_ALLOW_CREDENTIALS = True  # ← IMPORTANTE para cookies
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     "chrome-extension://moehmphhjgmgonplmjeaglfkolcklpkh",
+    FRONTEND_URL,
 ]
 
 

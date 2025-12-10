@@ -108,8 +108,8 @@ class GoogleLoginView(APIView):
                 key='parla_session',
                 value=jwt_token,
                 httponly=True,
-                secure=False,
-                samesite='Lax',
+                secure=True,
+                samesite='None',
                 max_age=60*60*24*7,  # 1 semana
             )
             

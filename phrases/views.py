@@ -158,6 +158,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all().order_by("name")
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None  # Desactiva paginación para devolver todas las categorías
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["type"]

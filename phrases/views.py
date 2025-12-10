@@ -152,7 +152,6 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     EXAMPLES:
     /api/phrases/categories/?type=grammar
-    /api/phrases/categories/?page=2
 
     """
     queryset = Category.objects.all().order_by("name")
